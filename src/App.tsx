@@ -1,71 +1,102 @@
 import { useEffect, useState } from 'react';
 
-const API_URL = 'http://localhost:3000/api/data';
+const API_URL = 'http://localhost:3000/api/accounts';
 
 function App() {
-    const [data, setData] = useState([]);
-    const [item, setItem] = useState('');
-    const [index, setIndex] = useState('');
-
+    const [accounts, setAccounts] = useState([]);
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [id, setId] = useState('');
 
     useEffect(() => {
         fetch(API_URL)
             .then(response => {
-                if (!response.ok)
-                    throw new Error('HTTP erroe! status: ' + response.status);
+                if (!response.ok) {
+                    throw new Error('GET failed');
+                }
                 return response.json();
             })
-            .then(data => {
-                setData(data)
-            })
+            .then(data => setAccounts(data))
             .catch(err => console.error(err));
     }, []);
 
-    const createItem = () => {
+    const createAccount = () => {
         fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ item })
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email })
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('POST failed');
+                return res.json();
+            })
             .then(() => window.location.reload());
     };
 
 
-    const updateItem = () => {
-        fetch(`${API_URL}/${index}`, {
+    const updateAccount = () => {
+        fetch(`${API_URL}/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ item })
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, email })
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('PUT failed');
+                return res.json();
+            })
             .then(() => window.location.reload());
     };
 
-
-    const deleteItem = () => {
-        fetch(`${API_URL}/${index}`, {
+    const deleteAccount = () => {
+        fetch(`${API_URL}/${id}`, {
             method: 'DELETE'
         })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('DELETE failed');
+                return res.json();
+            })
             .then(() => window.location.reload());
     };
 
     return (
         <div>
-            <ul>{data.map((value, i) => (<li key={i}>{i}: {value}</li>))}</ul>
-            <input placeholder="Item text" value={item} onChange={e => setItem(e.target.value)}/>
+            <h1>Accounts</h1>
 
-            <input placeholder="Index" value={index} onChange={e => setIndex(e.target.value)}/>
+            <ul>
+                {accounts.map(account => (
+                    <li key={account.id}>
+                        ID {account.id}: {account.username} ({account.email})
+                    </li>
+                ))}
+            </ul>
 
-            <button onClick={createItem}>post</button>
-            <button onClick={updateItem}>put</button>
-            <button onClick={deleteItem}>delete</button>
+            <input
+                placeholder="Account ID (PUT / DELETE)"
+                value={id}
+                onChange={e => setId(e.target.value)}
+            />
+
+            <input
+                placeholder="Username"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+            />
+
+            <input
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+            />
+
+            <button onClick={createAccount}>POST</button>
+            <button onClick={updateAccount}>PUT</button>
+            <button onClick={deleteAccount}>DELETE</button>
         </div>
     );
 }
 
 export default App;
-
-
-
