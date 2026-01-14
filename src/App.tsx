@@ -1,101 +1,45 @@
-import { useEffect, useState } from 'react';
-
-const API_URL = 'http://localhost:3000/api/accounts';
+import { useState } from 'react';
+import { useGet, usePost, usePut, useDelete } from './hooks';
+import './App.css';
 
 function App() {
-    const [accounts, setAccounts] = useState([]);
-    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
-    const [id, setId] = useState('');
+    const [pass, setPass] = useState('');
+    const [newEmail, setNewEmail] = useState('');
+    const [newPass, setNewPass] = useState('');
+    const [userId] = useState(0);
+    const [postToggle, setPostToggle] = useState(false);
+    const [putToggle, setPutToggle] = useState(false);
+    const [deleteToggle, setDeleteToggle] = useState(false);
+    const [deleteId, setDeleteId] = useState<number>(-1);
 
-    useEffect(() => {
-        fetch(API_URL)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('GET failed');
-                }
-                return response.json();
-            })
-            .then(data => setAccounts(data))
-            .catch(err => console.error(err));
-    }, []);
+    usePost(email, pass, postToggle, () => setPostToggle(false));
+    usePut(newEmail, newPass, userId, putToggle, () => setPutToggle(false));
+    useDelete(deleteId, deleteToggle, () => setDeleteToggle(false));
 
-    const createAccount = () => {
-        fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, email })
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('POST failed');
-                return res.json();
-            })
-            .then(() => window.location.reload());
-    };
-
-
-    const updateAccount = () => {
-        fetch(`${API_URL}/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, email })
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('PUT failed');
-                return res.json();
-            })
-            .then(() => window.location.reload());
-    };
-
-    const deleteAccount = () => {
-        fetch(`${API_URL}/${id}`, {
-            method: 'DELETE'
-        })
-            .then(res => {
-                if (!res.ok) throw new Error('DELETE failed');
-                return res.json();
-            })
-            .then(() => window.location.reload());
-    };
+    const tempID = useGet(0);
 
     return (
-        <div>
-            <h1>Accounts</h1>
+        <>
+            <h1>Test GET</h1>
+            <p>{tempID?.email}</p>
 
-            <ul>
-                {accounts.map(account => (
-                    <li key={account.id}>
-                        ID {account.id}: {account.username} ({account.email})
-                    </li>
-                ))}
-            </ul>
+            <div>
+                <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
+                <input value={pass} onChange={e => setPass(e.target.value)} placeholder="Password" />
+                <button onClick={() => setPostToggle(true)}>Create Account</button>
+            </div>
 
-            <input
-                placeholder="Account ID (PUT / DELETE)"
-                value={id}
-                onChange={e => setId(e.target.value)}
-            />
+            <div>
+                <input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="New Email" />
+                <input value={newPass} onChange={e => setNewPass(e.target.value)} placeholder="New Password" />
+                <button onClick={() => setPutToggle(true)}>Update Account</button>
+            </div>
 
-            <input
-                placeholder="Username"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-            />
-
-            <input
-                placeholder="Email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-            />
-
-            <button onClick={createAccount}>POST</button>
-            <button onClick={updateAccount}>PUT</button>
-            <button onClick={deleteAccount}>DELETE</button>
-        </div>
+            <div>
+                <button onClick={() => { setDeleteId(0); setDeleteToggle(true); }}>Delete Account</button>
+            </div>
+        </>
     );
 }
 
